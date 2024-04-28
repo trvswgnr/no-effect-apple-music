@@ -4,42 +4,42 @@ import { RedirectServerService } from "./redirect-server";
 import { Browser } from "./browser";
 
 Result.of(async () => {
-	const clientId = Option.of(process.env.SPOTIFY_CLIENT_ID).unwrap();
-	const clientSecret = Option.of(process.env.SPOTIFY_CLIENT_SECRET).unwrap();
-	const csrfToken = randomBytes(256).toString("hex");
+    const clientId = Option.of(process.env.SPOTIFY_CLIENT_ID).unwrap();
+    const clientSecret = Option.of(process.env.SPOTIFY_CLIENT_SECRET).unwrap();
+    const csrfToken = randomBytes(256).toString("hex");
 
-	const redirectServer = RedirectServerService.make({
-		clientId,
-		clientSecret,
-		port: 3939,
-		redirectUri: "/spotify",
-		csrfToken,
-	}).unwrap();
+    const redirectServer = RedirectServerService.make({
+        clientId,
+        clientSecret,
+        port: 3939,
+        redirectUri: "/spotify",
+        csrfToken,
+    }).unwrap();
 
-	const runningRedirectServer = redirectServer.start().unwrap();
-	const mailbox = runningRedirectServer.mailbox;
+    const runningRedirectServer = redirectServer.start().unwrap();
+    const mailbox = runningRedirectServer.mailbox;
 
-	const redirectUri = "http://localhost:3939/spotify";
+    const redirectUri = "http://localhost:3939/spotify";
 
-	const searchParams = new URLSearchParams({
-		response_type: "code",
-		client_id: clientId,
-		scope: "user-read-private",
-		redirect_uri: redirectUri,
-		state: csrfToken,
-		show_dialog: "true",
-	});
+    const searchParams = new URLSearchParams({
+        response_type: "code",
+        client_id: clientId,
+        scope: "user-read-private",
+        redirect_uri: redirectUri,
+        state: csrfToken,
+        show_dialog: "true",
+    });
 
-	const authorizeUrl = new URL(
-		`https://accounts.spotify.com/authorize?${searchParams.toString()}`,
-	);
+    const authorizeUrl = new URL(
+        `https://accounts.spotify.com/authorize?${searchParams.toString()}`,
+    );
 
-	Browser.open(authorizeUrl).mapOrElse(
-		(err) => console.error(err),
-		() => console.log("browser opened successfully"),
-	);
+    Browser.open(authorizeUrl).mapOrElse(
+        (err) => console.error(err),
+        () => console.log("browser opened successfully"),
+    );
 
-	const code = await mailbox;
+    const code = await mailbox;
 
-	console.log({ code });
+    console.log({ code });
 }).unwrapOrElse(console.error);
